@@ -1,0 +1,45 @@
+What is Apache Hadoop?
+대량의 자료를 처리할 수 있는 큰 컴퓨터 클러스터에서 동작하는 신뢰성 있고, 확장성 있는 분산 컨퓨팅을 위한 오픈소스 프레임워크
+원래 너치의 분산처리를 지원하기위해 개발된 것으로, 아파치 루씬의 하부 프로젝트임
+간단한 프로그래밍 모델을 사용하여 대용량 데이터의 분산 처리를 할 수 잇는 프레임 워크
+분산파일 시스템 GFS, 분산처리 시스템 MapReduce
+
+HDFS : 분산 파일 시스템
+MapReduce : 분석
+
+nutch.apache.org
+
+NDFS(Nutch DIstributed File System)
+
+RMI(Remote Method Invocation), RPC(Remote Procedure Call)
+Thread
+
+Chukwa, Scribe, Flume(log 수집기)
+sqoop
+
+Hive, Pig, Spark - 일괄처리
+Hive : 데이터 저장 구조, HQL(Hive에서 사용하는 Query Language)
+Pig : pig Latin(Script Language)
+Spark : batch 처리와 실시간 Streaming 처리가 가능, R, Python, Scala language interface 사용 가능, SQL 호환 가능, 실시간 처리
+
+Visualization(시각화) : Matplotlib, Seaborn, D3.js
+Workflow, oozie : Linux cron
+
+Hadoop ecosystem을 모니터링하고 관리함 - HUE, Ganglia, Nagios, CHEF
+Ganglia : 시스템 리소스(Memory, CPU, 컴퓨터) 관리
+Nagios : Networking monitoring
+HUE : 저장장치에 대한 상태를 관리할 수 있는 UI 제공
+CHEF : 프로그램 설치 용이
+
+Zookeeper : 분산 coordination system
+AVRO : 이기종 간에 데이터 주고 받는 표준(XML, JSON) - 데이터 직렬화
+
+Machine Learning : Python, R, scikit-learn ...
+
+Mahout : 과거에 머신러닝을 위해 사용되었지만 현재는 거의 사용되지 않는다.
+
+OLTP : On-Line Transaction Processing - 읽기, 쓰기가 모두 가능함
+OLAP : On-Line Analytical Processing - 읽기만 가능
+
+HBase(hbase.apache.org) : NoSQL 중 하나
+

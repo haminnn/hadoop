@@ -1,0 +1,138 @@
+su -
+cd /
+mkdir dfs
+chown -R chm:chm /dfs (오너를바꿀때 chown명령어를 쓴다.)
+systemctl stop firewalld
+systemctl disable firewalld
+cd /etc/sysconfig/network-scripts
+vi ifcfg-enp0s3
+BOOTPROTO=dhcp(dynamic hosts configuration protocol 의 약자) 동적이므로 dhcp를 static으로 바꾼다.
+IPADDR=192.168.100.150
+NETMASK=255.255.255.0
+GATEWAY=192.168.100.1
+DNS1=168.126.63.1
+추가한다.
+
+vi /etc/hosts 들어가서 안에 있는내용 다지우고
+192.168.100.150 master
+192.168.100.151 slave1
+192.168.100.152 slave2
+192.168.100.153 slave3, backup 
+추가한다.
+위와 같은 방법으로 slave1,2,3도 똑같이
+
+**데이터노드(slave1, slave2, slave3) 설정
+- ssh 인증서 사본 저장할 디렉토리 생성, 권한 부여
+$ mkdir ~/.ssh
+$ ll
+$ chmod 700 ~/.ssh
+$ ll
+**기본 tool 설치
+cd /etc/yum.repos.d
+vi CentOS-Linux-AppStream.repo
+	baseurl=http://mirror 를 baseurl=http:// vault로 바꾼다
+vi CentOS-Linux-BaseOs.repo
+	baseurl=http://mirror 를 baseurl=http:// vault로 바꾼다
+yum install net-tools
+yum install rsync
+yum install wget
+
+**master창에서
+cd /hadoop-3.2.2/etc/hadoop
+vi hadoop-env.sh
+//54라인
+export JAVA_HOME=~/jdk1.8.0_321
+
+vi core-site.xml
+<configuration>
+	<property>
+		<name>fs.defaultFS</name>
+		<value>hdfs://master:9000</value>
+	</property>
+</configuration>
+
+**다른 호스트와 동기화: master에 설치되어 있는 JDK, Hadoop을 데이터 노드들에 동기화
+-rsync-daemon 설치
+-설치 안되면
+vi /etc/yum.repos.d/CentOS-Linux-Extras.repo에 들어가서 baseurl=http://mirror 를 baseurl=http:// vault로 바꾼다
+-rsync -av ~/aaa user@slave1:~/aaa
+
+*JDK 동기화
+$ rsync -av ~/jdk1.8.0_321 slave1:~/jdk1.8.0_321
+$ rsync -av ~/jdk1.8.0_321 slave2:~/jdk1.8.0_321
+$ rsync -av ~/jdk1.8.0_321 slave3:~/jdk1.8.0_321
+
+* .bashrc 파일 동기화
+$ rsync -av ~/.bashrc slave1:~/.bashrc
+$ rsync -av ~/.bashrc slave2:~/.bashrc
+$ rsync -av ~/.bashrc slave3:~/.bashrc
+
+*hadoop 동기화
+$ rsync -av ~/hadoop-3.2.2/ slave1:/hadoop-3.2.2/
+$ rsync -av ~/hadoop-3.2.2/ slave2:/hadoop-3.2.2/
+$ rsync -av ~/hadoop-3.2.2/ slave3:/hadoop-3.2.2/
+
+*namenode = master에서(chm@master에서)
+cd /hadoop-3.2.2/etc/hadoop
+vi hdfs-site.xml
+//19번 라인에서
+<configuration>
+	<property>
+		<name>dfs.replocation</name>
+		<value>2</value>
+	</property>
+	<property>
+		<name>dfs.namenode.name.dir</name>
+		<value>file:///dfs/name</value>
+	</property>
+	<property>
+		<name>dfs.namenode.edits.dir</name>
+		<value>file:///dfs/edits</value>
+	</property>
+	<property>
+		<name>dfs.namenode.secondary.http-address</name>
+		<value>backup:9868</value>
+	</property>
+</configuration>
+이렇게 편집
+
+vi mapred-site.xml
+//19번라인에서
+<configuration>
+	<property>
+		<name>mapreduce.framework.name</name>
+		<value>yarn</value>
+	</property>
+</configuration>
+편집
+
+vi yarn-site.xml
+//19번라인에서
+<configuration>
+	<property>
+		<name>yarn.nodemanager.aux-services</name>
+		<value>mapreduce_shuffle</value>
+	</property>
+</configuration>
+편집
+
+vi workers
+안에 내용 다지우고
+slave1
+slave2
+slave3
+라고 편집하고 저장
+
+cd
+ssh-keygen -t rsa(전부다 enter)
+cd .ssh
+cp id_rsa.pub  authorized_keys
+ls
+scp ~/.ssh/id_rsa.pub slave1:~/.ssh/authorized_keys (명령어 scp는 secure copy의 약자임)
+
+slave1창에서
+systemctl start firewalld
+systemctl status firewalld
+firewall-cmd --permanent --zone=public --add-port=22/tcp
+firewall-cml --reload
+
